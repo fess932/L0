@@ -2,19 +2,19 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"github.com/jackc/pgx/v4"
 	"github.com/nats-io/nats.go"
 	"l0/configs"
 	"l0/pkg/order"
 	"log"
 	"net/http"
-	"os"
 )
 
 func main() {
 	config := configs.GetConfig()
-	repo := order.NewPgRepo(nil, config)
+	db := pgConn()
+
+	repo := order.NewPgRepo(db, config)
 	ucase := order.NewUsecase(repo)
 	api := order.NewAPI(ucase)
 
@@ -36,12 +36,15 @@ func main() {
 	log.Println(http.ListenAndServe(config.Host, mux))
 }
 
-func setupPg() {
-	//TODO implement me
-	conn, err := pgx.Connect(context.Background(), os.Getenv("DATABASE_URL"))
+func pgConn() *pgx.Conn {
+	conn, err := pgx.Connect(context.Background(), configs.GetConfig().DB)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Unable to connect to database: %v\n", err)
-		os.Exit(1)
+		log.Fatal(err)
 	}
-	defer conn.Close(context.Background())
+
+	if err = conn.Ping(context.Background()); err != nil {
+		log.Fatal(err)
+	}
+
+	return conn
 }

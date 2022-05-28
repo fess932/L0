@@ -26,6 +26,7 @@ func (a *API) Order(w http.ResponseWriter, r *http.Request) {
 	order, err := a.ou.GetOrderByID(1)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
+
 		return
 	}
 
@@ -36,11 +37,12 @@ func (a *API) SubscribeToOrders(m *nats.Msg) {
 	ord, err := orderFromJSON(m.Data)
 	if err != nil {
 		log.Println("error:", err)
+
 		return
 	}
 
 	if err = a.ou.AddOrder(ord); err != nil {
-		log.Fatal(err)
+		log.Println(err)
 	}
 }
 

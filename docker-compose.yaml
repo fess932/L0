@@ -2,9 +2,13 @@ services:
   pg:
     image: postgres:alpine
     environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-      - POSTGRES_DB=postgres
+      - POSTGRES_USER=wb
+      - POSTGRES_PASSWORD=wb
+      - POSTGRES_DB=wb
+    ports:
+      - 5432:5432
+    volumes:
+      - './db/pg/orders.sql:/docker-entrypoint-initdb.d/orders.sql'
 
   streaming:
       image: nats-streaming:latest

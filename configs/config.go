@@ -5,6 +5,7 @@ type Config struct {
 	CacheSize int
 	NatsHost  string
 	Topic     string
+	DB        string
 }
 
 var c *Config //nolint:gochecknoglobals
@@ -16,6 +17,7 @@ func GetConfig() Config {
 			CacheSize: 10 * 1024 * 1024, //nolint:gomnd
 			NatsHost:  "nats://localhost:4222",
 			Topic:     "order",
+			DB:        "postgres://wb:wb@localhost:5432/wb?sslmode=disable",
 		}
 	}
 
