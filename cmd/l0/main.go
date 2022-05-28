@@ -1,11 +1,15 @@
 package main
 
 import (
+	"context"
+	"fmt"
+	"github.com/jackc/pgx/v4"
 	"github.com/nats-io/nats.go"
 	"l0/configs"
 	"l0/pkg/order"
 	"log"
 	"net/http"
+	"os"
 )
 
 func main() {
@@ -20,9 +24,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	_, err = nc.Subscribe(config.Topic, func(m *nats.Msg) {
-		log.Println("INCOME:", string(m.Data))
-	})
+	_, err = nc.Subscribe(config.Topic, api.SubscribeToOrders)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -36,4 +38,10 @@ func main() {
 
 func setupPg() {
 	//TODO implement me
+	conn, err := pgx.Connect(context.Background(), os.Getenv("DATABASE_URL"))
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Unable to connect to database: %v\n", err)
+		os.Exit(1)
+	}
+	defer conn.Close(context.Background())
 }

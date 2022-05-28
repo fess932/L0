@@ -1,6 +1,9 @@
 package order
 
-import "l0/pkg/domain"
+import (
+	"l0/pkg/domain"
+	"log"
+)
 
 type ORepo interface {
 	GetOrderByID(id int) (*domain.Order, error)
@@ -8,6 +11,12 @@ type ORepo interface {
 
 type Usecase struct {
 	or ORepo
+}
+
+func (u *Usecase) AddOrder(order *domain.Order) error {
+	log.Println("inmplement me")
+
+	return nil
 }
 
 func NewUsecase(or ORepo) *Usecase {
