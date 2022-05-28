@@ -5,3 +5,6 @@ services:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
       - POSTGRES_DB=postgres
+
+  streaming:
+      image: nats-streaming:latest
