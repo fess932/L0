@@ -1,6 +1,7 @@
 package order
 
 import (
+	"github.com/nats-io/nats.go"
 	"l0/pkg/domain"
 	"net/http"
 )
@@ -25,4 +26,8 @@ func (a *API) Order(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Write([]byte(order.TrackNumber))
+}
+
+func (a *API) SubscribeToOrders(m *nats.Msg) {
+
 }

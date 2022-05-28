@@ -8,3 +8,5 @@ services:
 
   streaming:
       image: nats-streaming:latest
+      ports:
+        - "4222:4222"
