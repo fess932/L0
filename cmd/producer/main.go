@@ -1,62 +1,16 @@
 package main
 
 import (
-	"github.com/nats-io/nats.go"
-	"l0/configs"
+	"encoding/json"
+	"l0/pkg/domain"
 	"log"
 	"time"
-)
 
-var msg = []byte(`
-{
-  "order_uid": "b563feb7b2b84b6test",
-  "track_number": "WBILMTESTTRACK",
-  "entry": "WBIL",
-  "delivery": {
-    "name": "Test Testov",
-    "phone": "+9720000000",
-    "zip": "2639809",
-    "city": "Kiryat Mozkin",
-    "address": "Ploshad Mira 15",
-    "region": "Kraiot",
-    "email": "test@gmail.com"
-  },
-  "payment": {
-    "transaction": "b563feb7b2b84b6test",
-    "request_id": "",
-    "currency": "USD",
-    "provider": "wbpay",
-    "amount": 1817,
-    "payment_dt": 1637907727,
-    "bank": "alpha",
-    "delivery_cost": 1500,
-    "goods_total": 317,
-    "custom_fee": 0
-  },
-  "items": [
-    {
-      "chrt_id": 9934930,
-      "track_number": "WBILMTESTTRACK",
-      "price": 453,
-      "rid": "ab4219087a764ae0btest",
-      "name": "Mascaras",
-      "sale": 30,
-      "size": "0",
-      "total_price": 317,
-      "nm_id": 2389212,
-      "brand": "Vivienne Sabo",
-      "status": 202
-    }
-  ],
-  "locale": "en",
-  "internal_signature": "",
-  "customer_id": "test",
-  "delivery_service": "meest",
-  "shardkey": "9",
-  "sm_id": 99,
-  "date_created": "2021-11-26T06:22:19Z",
-  "oof_shard": "1"
-}`)
+	"github.com/brianvoe/gofakeit/v6"
+	"github.com/nats-io/nats.go"
+
+	"l0/configs"
+)
 
 func main() {
 	nc, err := nats.Connect(configs.GetConfig().NatsHost)
@@ -68,8 +22,68 @@ func main() {
 	for range t.C {
 		log.Println("send msg to topic", configs.GetConfig().Topic)
 
-		if err = nc.Publish(configs.GetConfig().Topic, msg); err != nil {
+		if err = nc.Publish(configs.GetConfig().Topic, genOrder()); err != nil {
 			log.Fatal(err)
 		}
 	}
+}
+
+func genOrder() []byte {
+	order := domain.Order{
+		SmID:              gofakeit.Number(1, 100),
+		OrderUID:          gofakeit.UUID(),
+		TrackNumber:       gofakeit.UUID(),
+		Entry:             "WBIL",
+		Locale:            gofakeit.Language(),
+		InternalSignature: "",
+		CustomerID:        gofakeit.UUID(),
+		DeliveryService:   "meest",
+		Shardkey:          "9",
+		OofShard:          "1",
+		DateCreated:       gofakeit.Date(),
+
+		Items: []domain.Item{
+			{
+				ChrtID:      gofakeit.IntRange(1, 10000),
+				TrackNumber: gofakeit.UUID(),
+				Price:       gofakeit.IntRange(1, 10000),
+				Rid:         gofakeit.UUID(),
+				Name:        gofakeit.BeerName(),
+				Sale:        0,
+				Size:        "",
+				TotalPrice:  0,
+				NmID:        0,
+				Brand:       "",
+				Status:      0,
+			},
+		},
+		Delivery: domain.Delivery{
+			Name:    gofakeit.StreetName(),
+			Phone:   gofakeit.Phone(),
+			Zip:     gofakeit.Zip(),
+			City:    gofakeit.City(),
+			Address: gofakeit.BitcoinAddress(),
+			Region:  "",
+			Email:   gofakeit.Email(),
+		},
+		Payment: domain.Payment{
+			Transaction:  gofakeit.UUID(),
+			RequestID:    "",
+			Currency:     "",
+			Provider:     "",
+			Amount:       0,
+			PaymentDt:    0,
+			Bank:         "",
+			DeliveryCost: 0,
+			GoodsTotal:   0,
+			CustomFee:    0,
+		},
+	}
+
+	b, err := json.Marshal(order)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return b
 }

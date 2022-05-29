@@ -14,7 +14,11 @@ func main() {
 	config := configs.GetConfig()
 	db := pgConn()
 
-	repo := order.NewPgRepo(db, config)
+	repo := order.NewPgRepo(db)
+	if err := repo.RefreshCacheFromDB(context.Background(), config); err != nil {
+		log.Println("error refreshing cache from db", err)
+	}
+
 	ucase := order.NewUsecase(repo)
 	api := order.NewAPI(ucase)
 

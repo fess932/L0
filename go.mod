@@ -3,6 +3,7 @@ module l0
 go 1.18
 
 require (
+	github.com/brianvoe/gofakeit/v6 v6.16.0
 	github.com/coocood/freecache v1.2.1
 	github.com/jackc/pgx/v4 v4.16.1
 	github.com/nats-io/nats.go v1.16.0
