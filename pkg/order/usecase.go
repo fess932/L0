@@ -1,12 +1,19 @@
 package order
 
 import (
+	"context"
+	"fmt"
 	"l0/pkg/domain"
+	"log"
 )
 
 type ORepo interface {
-	GetOrderByID(id int) (*domain.Order, error)
-	AddOrder(order *domain.Order) error
+	GetOrderByID(ctx context.Context, id int) (*domain.Order, error)
+	AddOrder(ctx context.Context, order *domain.Order) error
+}
+
+func NewUsecase(or ORepo) *Usecase {
+	return &Usecase{or}
 }
 
 type Usecase struct {
@@ -14,13 +21,15 @@ type Usecase struct {
 }
 
 func (u *Usecase) AddOrder(order *domain.Order) error {
-	return u.or.AddOrder(order)
-}
+	if err := u.or.AddOrder(context.Background(), order); err != nil {
+		return fmt.Errorf("error adding order: %w", err)
+	}
 
-func NewUsecase(or ORepo) *Usecase {
-	return &Usecase{or}
+	log.Printf("order added: %v\n", order.ID)
+
+	return nil
 }
 
 func (u *Usecase) GetOrderByID(id int) (*domain.Order, error) {
-	return u.or.GetOrderByID(id)
+	return u.or.GetOrderByID(context.Background(), id)
 }

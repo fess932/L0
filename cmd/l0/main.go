@@ -31,7 +31,7 @@ func main() {
 
 	// http
 	mux := http.NewServeMux()
-	mux.HandleFunc("/", api.Order)
+	mux.HandleFunc("/", api.InputOrderIDHandler)
 	log.Println("server listen on", config.Host)
 	log.Println(http.ListenAndServe(config.Host, mux))
 }

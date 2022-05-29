@@ -1,8 +1,11 @@
 package domain
 
-import "time"
+import (
+	"time"
+)
 
 type Order struct {
+	ID                int       `json:"-"`
 	SmID              int       `json:"sm_id"`
 	OrderUID          string    `json:"order_uid"`
 	TrackNumber       string    `json:"track_number"`
