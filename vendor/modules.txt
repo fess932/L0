@@ -8,6 +8,11 @@ github.com/cespare/xxhash/v2
 # github.com/coocood/freecache v1.2.1
 ## explicit; go 1.13
 github.com/coocood/freecache
+# github.com/gogo/protobuf v1.3.2
+## explicit; go 1.15
+github.com/gogo/protobuf/gogoproto
+github.com/gogo/protobuf/proto
+github.com/gogo/protobuf/protoc-gen-gogo/descriptor
 # github.com/golang/protobuf v1.5.2
 ## explicit; go 1.9
 # github.com/jackc/chunkreader/v2 v2.0.1
@@ -50,6 +55,10 @@ github.com/nats-io/nkeys
 # github.com/nats-io/nuid v1.0.1
 ## explicit
 github.com/nats-io/nuid
+# github.com/nats-io/stan.go v0.10.2
+## explicit; go 1.14
+github.com/nats-io/stan.go
+github.com/nats-io/stan.go/pb
 # golang.org/x/crypto v0.0.0-20220315160706-3147a52a75dd
 ## explicit; go 1.17
 golang.org/x/crypto/ed25519

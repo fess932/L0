@@ -3,7 +3,7 @@ package order
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/nats-io/nats.go"
+	"github.com/nats-io/stan.go"
 	"html/template"
 	"l0/pkg/domain"
 	"log"
@@ -82,7 +82,7 @@ func (a *API) InputOrderIDHandler(w http.ResponseWriter, r *http.Request) {
 	tmpl.Execute(w, order)
 }
 
-func (a *API) SubscribeToOrders(m *nats.Msg) {
+func (a *API) SubscribeToOrders(m *stan.Msg) {
 	ord, err := orderFromJSON(m.Data)
 	if err != nil {
 		log.Println("error:", err)

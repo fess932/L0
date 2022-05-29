@@ -3,7 +3,7 @@ package main
 import (
 	"context"
 	"github.com/jackc/pgx/v4"
-	"github.com/nats-io/nats.go"
+	"github.com/nats-io/stan.go"
 	"l0/configs"
 	"l0/pkg/order"
 	"log"
@@ -23,14 +23,21 @@ func main() {
 	api := order.NewAPI(ucase)
 
 	// streaming
-	nc, err := nats.Connect(config.NatsHost)
+	st, err := stan.Connect(
+		config.NatsClusterID,
+		"1", stan.NatsURL(config.NatsHost),
+	)
+	//nc, err := nats.Connect(config.NatsHost)
 	if err != nil {
 		log.Fatal(err)
 	}
+	defer st.Close()
 
-	_, err = nc.Subscribe(config.Topic, api.SubscribeToOrders)
+	_, err = st.Subscribe(config.Topic, api.SubscribeToOrders, stan.DurableName("orders"))
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
+
+		return
 	}
 
 	// http

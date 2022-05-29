@@ -7,22 +7,28 @@ import (
 	"time"
 
 	"github.com/brianvoe/gofakeit/v6"
-	"github.com/nats-io/nats.go"
-
+	stan "github.com/nats-io/stan.go"
 	"l0/configs"
 )
 
 func main() {
-	nc, err := nats.Connect(configs.GetConfig().NatsHost)
+	sc, err := stan.Connect(
+		configs.GetConfig().NatsClusterID,
+		"order_producer",
+		stan.NatsURL(configs.GetConfig().NatsHost),
+	)
 	if err != nil {
-		log.Fatal(err)
-	}
+		log.Println(err)
 
-	t := time.NewTicker(time.Second * 1)
+		return
+	}
+	defer sc.Close()
+
+	t := time.NewTicker(time.Nanosecond * 1)
 	for range t.C {
 		log.Println("send msg to topic", configs.GetConfig().Topic)
 
-		if err = nc.Publish(configs.GetConfig().Topic, genOrder()); err != nil {
+		if err = sc.Publish(configs.GetConfig().Topic, genOrder()); err != nil {
 			log.Fatal(err)
 		}
 	}
