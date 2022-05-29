@@ -27,7 +27,7 @@ func NewPgRepo(db *pgx.Conn) *PgRepo {
 }
 
 func scanOrder(o *domain.Order, row pgx.Row) (err error) {
-	if err = row.Scan(&o.OrderUID, &o.TrackNumber, &o.Entry, &o.DateCreated); err != nil {
+	if err = row.Scan(&o.ID, &o); err != nil {
 		return fmt.Errorf("error scanning order id: %w", err)
 	}
 
@@ -40,7 +40,7 @@ func (p *PgRepo) RefreshCacheFromDB(ctx context.Context, conf configs.Config) er
 	p.cache = freecache.NewCache(conf.CacheSize)
 
 	rows, err := p.db.Query(ctx, `
-SELECT order_uid, track_number, entry, date_created 
+SELECT id, order_data 
 FROM orders 
 ORDER BY id DESC
 LIMIT $1`, maxCacheEntries)
@@ -71,7 +71,7 @@ LIMIT $1`, maxCacheEntries)
 		}
 	}
 
-	log.Println("cache refreshed")
+	log.Println("cache refreshed, count", p.cache.EntryCount())
 
 	return nil
 }
@@ -91,14 +91,17 @@ func (p *PgRepo) GetOrderByID(ctx context.Context, id int) (order *domain.Order,
 			break
 		}
 
+		log.Println("get from cache")
+
 		return order, nil
 	}
 
-	order = &domain.Order{ID: id}
+	log.Println("get from db")
 
+	order = &domain.Order{ID: id}
 	err = scanOrder(order, p.db.QueryRow(ctx, `
-SELECT order_uid, track_number, entry, date_created
-FROM orders 
+SELECT id, order_data
+FROM orders
 WHERE id=$1
 `, id))
 
@@ -106,28 +109,35 @@ WHERE id=$1
 		return nil, fmt.Errorf("error getting order: %w", err)
 	}
 
+	data, err := json.Marshal(order)
+	if err == nil {
+		log.Println("error marshalling order: %w", err)
+
+		return order, nil
+	}
+
+	err = p.cache.Set([]byte(strconv.Itoa(order.ID)), data, 0)
+	if err != nil {
+		log.Println(fmt.Errorf("error adding order to cache: %w", err))
+	}
+
 	return order, nil
 }
 
 func (p *PgRepo) AddOrder(ctx context.Context, order *domain.Order) error {
-	err := p.db.QueryRow(ctx,
-		`
-INSERT INTO orders (order_uid, track_number, entry, date_created) 
-VALUES ($1, $2, $3, $4) 
-RETURNING id`,
-		order.OrderUID, order.TrackNumber, order.Entry, order.DateCreated,
-	).Scan(&order.ID)
+	data, err := json.Marshal(order)
+	if err != nil {
+		return fmt.Errorf("error marshalling order: %w", err)
+	}
+
+	err = p.db.QueryRow(ctx, `INSERT INTO orders (order_data) VALUES ($1) RETURNING id`, data).
+		Scan(&order.ID)
 
 	if err != nil {
 		return fmt.Errorf("error adding order: %w", err)
 	}
 
-	o, err := json.Marshal(order)
-	if err != nil {
-		return fmt.Errorf("error marshalling order: %w", err)
-	}
-
-	err = p.cache.Set([]byte(strconv.Itoa(order.ID)), o, 0)
+	err = p.cache.Set([]byte(strconv.Itoa(order.ID)), data, 0)
 	if err != nil {
 		return fmt.Errorf("error adding order to cache: %w", err)
 	}
