@@ -45,8 +45,14 @@ func (p *PgRepo) GetOrderByID(ctx context.Context, id int) (order *domain.Order,
 		return order, nil
 	}
 
-	if err = p.db.QueryRow(ctx, "SELECT * FROM orders WHERE id = $1", id).
-		Scan(&id, order); err != nil {
+	order = &domain.Order{ID: id}
+	err = p.db.QueryRow(ctx, `
+SELECT order_uid, track_number, entry, date_created
+FROM orders 
+WHERE id=$1
+`, id).Scan(&order.OrderUID, &order.TrackNumber, &order.Entry, &order.DateCreated)
+
+	if err != nil {
 		return nil, fmt.Errorf("error getting order: %w", err)
 	}
 
