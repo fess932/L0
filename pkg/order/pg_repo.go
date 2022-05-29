@@ -91,12 +91,8 @@ func (p *PgRepo) GetOrderByID(ctx context.Context, id int) (order *domain.Order,
 			break
 		}
 
-		log.Println("get from cache")
-
 		return order, nil
 	}
-
-	log.Println("get from db")
 
 	order = &domain.Order{ID: id}
 	err = scanOrder(order, p.db.QueryRow(ctx, `
@@ -110,8 +106,8 @@ WHERE id=$1
 	}
 
 	data, err := json.Marshal(order)
-	if err == nil {
-		log.Println("error marshalling order: %w", err)
+	if err != nil {
+		log.Println("error marshalling order, skip adding to cache: %w", err)
 
 		return order, nil
 	}

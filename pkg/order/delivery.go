@@ -51,6 +51,9 @@ var tmpl = template.Must(template.New("order").Parse(
             <button type="submit" class="btn btn-primary">Submit</button>
         </form>
 
+        <h3>
+            Order id: {{ .OrderUID }}
+        </h3>
         <div>{{ . }}</div>
     </div>
 </body>
@@ -60,7 +63,7 @@ var tmpl = template.Must(template.New("order").Parse(
 func (a *API) InputOrderIDHandler(w http.ResponseWriter, r *http.Request) {
 	id := r.URL.Query().Get("orderid")
 	if id == "" {
-		tmpl.Execute(w, "пусто")
+		tmpl.Execute(w, nil)
 
 		return
 	}
